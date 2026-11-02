@@ -1,0 +1,576 @@
+/* ============================================
+   Account Group Modal
+   ============================================ */
+
+.modal.account-group-modal {
+  max-width: 560px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.account-group-modal .modal-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* 创建分组 */
+.group-create-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.group-create-row input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.group-create-row input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.group-create-row .btn {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* 分组列表 */
+.group-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-modal-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.group-modal-item:hover {
+  border-color: var(--border-hover);
+}
+
+.group-modal-item.is-dragging {
+  opacity: 0.45;
+  border-style: dashed;
+  border-color: var(--primary);
+  background: var(--bg-hover);
+}
+
+.group-modal-item.drop-target {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.group-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 28px;
+  color: var(--text-muted);
+  cursor: grab;
+  border-radius: 6px;
+  opacity: 0.55;
+  transition: opacity 0.15s, color 0.15s, background-color 0.15s;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.group-drag-handle:hover {
+  opacity: 1;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.group-drag-handle:active {
+  cursor: grabbing;
+}
+
+.group-modal-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 48px;
+}
+
+.group-modal-item .group-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.group-modal-item .group-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.group-modal-item .group-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.group-modal-item .group-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 第二行：额度策略，与主信息分层，避免挤在一行 */
+.group-modal-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme='light'] .group-modal-item-meta,
+html.light .group-modal-item-meta,
+body.theme-light .group-modal-item-meta {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.group-quota-meta-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.group-quota-dropdown {
+  width: auto;
+  min-width: 120px;
+  max-width: 160px;
+  flex: 0 0 auto;
+}
+
+.group-quota-dropdown .single-select-dropdown-trigger {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: none;
+}
+
+.group-quota-dropdown .single-select-dropdown-trigger:hover:not(:disabled) {
+  border-color: rgba(59, 130, 246, 0.35);
+  background: var(--bg-card);
+  box-shadow: none;
+  transform: none;
+}
+
+.group-quota-dropdown .single-select-dropdown-trigger.open {
+  border-color: rgba(59, 130, 246, 0.45);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: none;
+}
+
+.group-quota-dropdown .single-select-dropdown-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.group-quota-dropdown .single-select-dropdown-arrow {
+  width: 20px;
+  height: 20px;
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--text-muted);
+}
+
+.group-quota-dropdown .single-select-dropdown-arrow svg {
+  width: 12px;
+  height: 12px;
+}
+
+.group-quota-dropdown-menu.single-select-dropdown-menu {
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.group-quota-dropdown-menu .single-select-dropdown-item {
+  min-height: 34px;
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
+.group-quota-dropdown-menu .single-select-dropdown-item-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.group-quota-custom-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.group-quota-custom-field {
+  width: 52px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0;
+}
+
+.group-quota-custom-field::-webkit-outer-spin-button,
+.group-quota-custom-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.group-quota-custom-field[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.group-quota-unit {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.group-modal-item .group-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.group-modal-item .group-action-btn {
+  appearance: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.group-modal-item .group-action-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.group-modal-item .group-action-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.group-modal-item .group-action-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.group-modal-item .group-action-btn.add-btn {
+  width: auto;
+  height: 28px;
+  padding: 0 10px;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.group-modal-item .group-action-btn.add-btn:hover {
+  background: rgba(59, 130, 246, 0.16);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: var(--primary);
+}
+
+/* 重命名编辑 */
+.group-rename-input {
+  flex: 1;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--primary);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* 空状态 */
+.group-modal-empty {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.group-modal-empty svg {
+  display: block;
+  margin: 0 auto 10px;
+  opacity: 0.4;
+}
+
+/* 添加到分组弹窗 */
+.modal.add-to-group-modal {
+  max-width: 380px;
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.add-to-group-modal .modal-body {
+  padding: 16px 20px;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.add-to-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.add-to-group-item {
+  appearance: none;
+  font: inherit;
+  color: var(--text-primary);
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.add-to-group-item:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.add-to-group-item .group-icon {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.add-to-group-item .group-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.add-to-group-item .group-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  min-width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* 弹窗内错误提示 */
+.group-modal-error {
+  flex-shrink: 0;
+  overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--danger, #ef4444);
+  font-size: 13px;
+  animation: groupErrorFadeIn 0.2s ease;
+}
+
+.group-modal-error svg {
+  flex-shrink: 0;
+}
+
+@keyframes groupErrorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 分组筛选复选框 */
+.group-filter-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+/* 分组筛选选中高亮 */
+.group-modal-item.group-filter-active {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+
+.group-modal-item.group-filter-active .group-modal-item-main {
+  background: rgba(59, 130, 246, 0.04);
+}
+
+/* 筛选提示条 */
+.group-filter-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  font-size: 12px;
+  color: var(--primary);
+}
+
+.group-filter-clear-btn {
+  border: none;
+  background: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.group-filter-clear-btn:hover {
+  opacity: 0.8;
+}
+
+/* 工具栏按钮 - 筛选激活高亮 */
+.btn-filter-active {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.modal.account-group-modal .modal-header,
+.modal.account-group-modal .modal-footer,
+.modal.add-to-group-modal .modal-header {
+  flex-shrink: 0;
+}
+
+.group-field-error {
+  color: var(--danger, #ef4444);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.group-create-row input[aria-invalid='true'],
+.group-rename-input[aria-invalid='true'] {
+  border-color: var(--danger, #ef4444);
+}
+
+.group-create-row input:disabled,
+.group-rename-input:disabled,
+.group-quota-custom-field:disabled,
+.add-to-group-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.add-to-group-item:focus-visible,
+.group-modal-item .group-action-btn:focus-visible,
+.group-quota-custom-field:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 540px) {
+  .group-modal-item-main {
+    flex-wrap: wrap;
+  }
+
+  .group-modal-item .group-info {
+    min-width: 100px;
+  }
+
+  .group-modal-item .group-actions {
+    margin-left: auto;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}

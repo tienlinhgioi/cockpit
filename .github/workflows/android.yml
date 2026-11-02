@@ -1,0 +1,93 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'ccr-*']
+    paths:
+      - 'src/**'
+      - 'src-tauri/**'
+      - 'scripts/android-*.sh'
+      - 'package*.json'
+      - '.github/workflows/android.yml'
+  pull_request:
+    paths:
+      - 'src-tauri/**'
+      - 'src/**'
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" "ndk;27.2.12479018"
+
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Rust check (Android target)
+        run: |
+          source scripts/android-env.sh
+          cargo check --target aarch64-linux-android -p cockpit-tools --lib
+
+      - name: Decode release keystore (optional)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          else
+            echo "No release keystore secret: the APK will be signed with an ephemeral test key."
+          fi
+
+      - name: Build, sign and verify APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: scripts/android-build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cockpit-tools-android-arm64
+          path: |
+            dist-android/*.apk
+            dist-android/*.sha256
+          if-no-files-found: error
+          retention-days: 30
