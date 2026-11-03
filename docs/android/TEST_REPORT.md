@@ -33,13 +33,14 @@ real Claude/Codex/Antigravity services.**
 
 ## 2. APK facts (from the built file)
 
-* `cockpit-tools-android-arm64-test-signed.apk` — built 2026-11-03 01:27 UTC from branch head
-  at that time; SHA-256 `8f0f6bdab991e0e157ac1544af1f8cf3cbe20984f62bec306f8910b7a8af2cfb`.
-* Build recipe that finished: opt-level `s`, LTO off, 16 codegen units, `CARGO_BUILD_JOBS=2`,
-  symbols stripped. Peak `rustc` memory observed: 11.8 GB.
+* `cockpit-tools-android-arm64-test-signed.apk` — built 2026-11-03 02:56 UTC; SHA-256
+  `9eb06a120a0aa0c357b17437494da4cc323c20e33a8f13bea3b4b484b046081b`; **38.9 MB**.
+* Build recipe that finished: opt-level `s`, LTO off, 32 codegen units, `CARGO_BUILD_JOBS=1`,
+  symbols stripped, native library stored compressed (`useLegacyPackaging`). Total build ≈ 25 min.
+  The same code at 16 units / 2 jobs was OOM-killed (12.7 GB) once and finished once (11.8 GB).
 * package `io.github.tienlinhgioi.cockpit`, version 1.3.78, minSdk 26, targetSdk 36,
-  ABI `arm64-v8a` only. Size ≈ 91 MB (the Rust library alone is ≈ 86 MB; an earlier thin-LTO
-  build was ≈ 85 MB but could not be reproduced within the sandbox memory limit).
+  ABI `arm64-v8a` only. Native library ≈ 88 MB uncompressed (34 MB inside the APK); it is
+  extracted at install time (`extractNativeLibs=true`), so on-device storage is larger than the APK.
 * Signed with a throw-away **test** key (`CN=Cockpit Tools test signing`). Not for distribution.
 * Manifest: `allowBackup=false`, network-security-config (cleartext only for localhost),
   data-extraction rules excluding everything, foreground service type `specialUse`.
@@ -66,6 +67,19 @@ real Claude/Codex/Antigravity services.**
 * Release signing with a real key; update-in-place across signing keys.
 * Memory/CPU/battery measurements. APK size has not been optimised beyond `opt-level=s`,
   thin LTO and symbol stripping.
+
+## 3b. First real-device evidence (user screenshot, earlier build)
+
+A user ran an earlier build on a phone (Vietnamese UI). What it showed, and what was done:
+* **Settings save failed** — "lock acquisition failed due to I/O error". Root cause:
+  `std::fs::File::try_lock` is unsupported on Android. Fixed with `fs2` flock
+  (`utils/file_lock.rs`); the lock helper passes a host test, the fix itself is **not yet
+  confirmed on a device**.
+* Settings text clipped at the right edge (`.row-label{min-width:240px}`), content drawn under
+  the status bar (forced edge-to-edge at targetSdk 36), only the upper part of the screen used.
+  Changed: wrapping rows, window-inset padding in `MainActivity`, app fills the WebView, UI drawn
+  1.5x smaller (zoom 0.667). Layout checked only in a desktop-browser render at 412x892 with
+  stubbed (empty) data; the Settings page could not be rendered there. **Not confirmed on device.**
 
 ## 4. Problems found and fixed during verification
 
