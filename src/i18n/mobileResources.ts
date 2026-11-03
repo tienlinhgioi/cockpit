@@ -49,5 +49,7 @@ const vi = {
 };
 
 export function registerMobileResources(): void {
+  // Guarded so partial i18n stubs (tests, early boot) never throw.
+  if (typeof i18n?.addResourceBundle !== 'function') return;
   i18n.addResourceBundle('vi', 'translation', { mobile: vi }, true, false);
 }

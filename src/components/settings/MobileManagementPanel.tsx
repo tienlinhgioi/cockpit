@@ -18,7 +18,6 @@ import {
 } from '../../services/mobileManagementService';
 import { registerMobileResources } from '../../i18n/mobileResources';
 
-registerMobileResources();
 
 function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -54,6 +53,7 @@ export function MobileManagementPanel() {
   }, []);
 
   useEffect(() => {
+    registerMobileResources();
     void refresh();
   }, [refresh]);
 
