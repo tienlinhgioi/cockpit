@@ -47,12 +47,14 @@ jobs:
         with:
           workspaces: ". -> target"
 
-      - uses: android-actions/setup-android@v3
-
+      # The ubuntu-24.04 runner image already ships the Android SDK ($ANDROID_HOME) and
+      # sdkmanager; the third-party setup action is not needed.
       - name: Install Android SDK components
         run: |
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" "ndk;27.2.12479018"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses >/dev/null || true
+          "$SDKM" "platforms;android-36" "build-tools;36.0.0" "platform-tools" "ndk;27.2.12479018"
 
       - name: Install JS dependencies
         run: npm ci --no-audit --no-fund
