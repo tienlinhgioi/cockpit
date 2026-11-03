@@ -1,0 +1,13 @@
+# Source this file to configure the Android build environment.
+export ANDROID_HOME="${ANDROID_HOME:-/opt/android-sdk}"
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+export NDK_HOME="${NDK_HOME:-$ANDROID_HOME/ndk/27.2.12479018}"
+export ANDROID_NDK_HOME="$NDK_HOME"
+export ANDROID_NDK_ROOT="$NDK_HOME"
+TC="$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+export PATH="$TC:$PATH"
+API="${ANDROID_API:-26}"
+export CC_aarch64_linux_android="$TC/aarch64-linux-android${API}-clang"
+export CXX_aarch64_linux_android="$TC/aarch64-linux-android${API}-clang++"
+export AR_aarch64_linux_android="$TC/llvm-ar"
+export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$CC_aarch64_linux_android"

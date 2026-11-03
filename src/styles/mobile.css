@@ -1,0 +1,306 @@
+/* Android / small-screen layout.
+ * Everything is scoped to `html.platform-android` so desktop layouts are untouched.
+ * The desktop side navigation becomes a scrollable bottom bar; content gets full width. */
+
+html.platform-android,
+html.platform-android body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.platform-android .app-container {
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+html.platform-android .main-wrapper {
+  margin-inline-start: 0 !important;
+  width: 100%;
+  height: 100%;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 12px
+    calc(72px + env(safe-area-inset-bottom, 0px)) 12px !important;
+  gap: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+/* Side navigation -> bottom bar */
+html.platform-android .side-nav,
+html.platform-android .side-nav.side-nav-classic {
+  position: fixed;
+  inset: auto 0 0 0;
+  top: auto;
+  transform: none;
+  width: 100%;
+  min-height: 0;
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding: 6px 8px env(safe-area-inset-bottom, 0px) 8px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  border-radius: 18px 18px 0 0;
+  border-width: 1px 0 0 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  animation: none;
+  z-index: 1000;
+}
+
+html.platform-android .side-nav::-webkit-scrollbar {
+  display: none;
+}
+
+html.platform-android .nav-brand,
+html.platform-android .nav-footer,
+html.platform-android .side-nav-update-entry,
+html.platform-android .side-nav-layout-switch-trigger,
+html.platform-android .side-nav-classic-handle,
+html.platform-android .nav-item .tooltip {
+  display: none !important;
+}
+
+html.platform-android .nav-items,
+html.platform-android .nav-bottom-actions {
+  flex-direction: row;
+  flex: 0 0 auto;
+  gap: 4px;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: visible;
+  max-height: none;
+  padding: 0;
+}
+
+html.platform-android .nav-item,
+html.platform-android .side-nav.side-nav-classic .nav-item {
+  flex: 0 0 auto;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+}
+
+html.platform-android .nav-item:hover {
+  transform: none;
+}
+
+html.platform-android .nav-item-text {
+  display: none;
+}
+
+/* Overlays / modals use the whole screen */
+html.platform-android .modal,
+html.platform-android .qs-modal,
+html.platform-android [class$='-modal'],
+html.platform-android [class*='-modal-content'] {
+  max-width: 100%;
+}
+
+html.platform-android .qs-modal {
+  width: calc(var(--vw) - 16px);
+  max-height: calc(var(--vh) - 16px);
+}
+
+/* Wide tables / grids scroll instead of overflowing */
+html.platform-android table {
+  display: block;
+  overflow-x: auto;
+}
+
+html.platform-android input,
+html.platform-android select,
+html.platform-android textarea {
+  font-size: 16px; /* prevents WebView focus-zoom */
+}
+
+html.platform-android button {
+  min-height: 36px;
+}
+
+/* The transparent desktop drag region has no meaning on Android */
+html.platform-android .drag-region {
+  display: none !important;
+}
+
+/* Management / Android settings panel */
+.mobile-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-panel .mobile-panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mobile-panel code {
+  word-break: break-all;
+}
+
+.mobile-panel .mobile-panel-token {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--bg-hover, rgba(127, 127, 127, 0.15));
+  word-break: break-all;
+}
+
+
+/* ---- Fixes found by rendering at 412x892 -------------------------------------------------
+ * The default "classic" side-nav layout carries its own (scaled) rules; these selectors are
+ * deliberately more specific so the bottom bar wins over them. */
+html.platform-android .side-nav.side-nav-classic,
+html.platform-android .app-container .side-nav {
+  background: var(--bg-card, #fff) !important;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12);
+  width: 100% !important;
+  max-width: 100%;
+  inset-inline: 0 !important;
+  bottom: 0 !important;
+  top: auto !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  padding-top: 6px !important;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  gap: 4px !important;
+}
+
+html.platform-android .side-nav .nav-items,
+html.platform-android .side-nav .nav-bottom-actions,
+html.platform-android .side-nav.side-nav-classic .nav-items,
+html.platform-android .side-nav.side-nav-classic .nav-bottom-actions {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  gap: 4px !important;
+}
+
+html.platform-android .side-nav .nav-item,
+html.platform-android .side-nav.side-nav-classic .nav-item {
+  flex: 0 0 auto !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  justify-content: center !important;
+}
+
+html.platform-android .side-nav .nav-item .nav-item-text,
+html.platform-android .side-nav.side-nav-classic .nav-item .nav-item-text,
+html.platform-android .side-nav .side-nav-more-manage {
+  display: none !important;
+}
+
+/* Page title row: stack instead of overlapping the action buttons */
+html.platform-android .page-tabs-row {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 0 !important;
+}
+
+html.platform-android .page-tabs-label,
+html.platform-android .page-tabs-label.dashboard-title-label {
+  position: static !important;
+  transform: none !important;
+  max-width: 100%;
+}
+
+html.platform-android .dashboard-top-actions {
+  margin-left: 0;
+  flex-wrap: wrap;
+}
+
+
+/* ---- Settings rows (found from a real-device screenshot) ----------------------------------
+ * `.row-label{min-width:240px}` + non-shrinking controls + 24px padding is wider than a phone,
+ * so descriptions were clipped at the right edge. Stack label above control and let it wrap. */
+html.platform-android .settings-row {
+  flex-wrap: wrap;
+  padding: 14px 12px;
+  gap: 8px;
+}
+
+html.platform-android .row-label {
+  min-width: 0 !important;
+  flex: 1 1 100%;
+  padding-right: 0;
+}
+
+html.platform-android .row-title,
+html.platform-android .row-desc {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+html.platform-android .row-control {
+  flex-shrink: 1;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+}
+
+html.platform-android .row-control select,
+html.platform-android .row-control input:not([type='checkbox']):not([type='radio']) {
+  max-width: 100%;
+}
+
+/* The app fills the WebView exactly and is drawn 1.5x smaller (zoom 0.667) so phones show more
+ * content. Sizes inside the zoomed box are in "zoom units", so the box is enlarged by 1/zoom and
+ * viewport units inside it must use --vw/--vh. `transform` makes position:fixed descendants
+ * (modals, overlays, the bottom bar) relative to this box instead of the viewport. */
+html.platform-android {
+  --ui-z: 0.667;
+  --vw: calc(100vw / var(--ui-z));
+  --vh: calc(100dvh / var(--ui-z));
+}
+
+html.platform-android .app-container {
+  position: fixed;
+  inset: auto;
+  top: 0;
+  left: 0;
+  width: var(--vw);
+  height: var(--vh);
+  min-height: 0;
+  zoom: var(--ui-z);
+  transform: translateZ(0);
+}
+
+html.platform-android .main-wrapper {
+  height: 100%;
+}
+
+/* Keep 2FA / Logs / Settings reachable: the platform icons scroll horizontally underneath, but
+ * this group stays pinned to the right edge. (With many platforms Settings was pushed off-screen.) */
+html.platform-android .side-nav .nav-bottom-actions,
+html.platform-android .side-nav.side-nav-classic .nav-bottom-actions {
+  position: sticky !important;
+  right: 0;
+  z-index: 3;
+  background: var(--bg-card, #fff) !important;
+  padding-left: 6px !important;
+  box-shadow: -10px 0 10px -8px rgba(0, 0, 0, 0.3);
+}

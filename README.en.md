@@ -1,0 +1,493 @@
+# Cockpit Tools
+
+English · [Portuguese (BR)](README.pt-br.md) · [简体中文](README.md)
+
+[![GitHub stars](https://img.shields.io/github/stars/jlcodes99/cockpit-tools?style=flat&color=gold)](https://github.com/jlcodes99/cockpit-tools)
+[![GitHub downloads](https://img.shields.io/github/downloads/jlcodes99/cockpit-tools/total?style=flat&color=blue)](https://github.com/jlcodes99/cockpit-tools/releases)
+[![GitHub release](https://img.shields.io/github/v/release/jlcodes99/cockpit-tools?style=flat)](https://github.com/jlcodes99/cockpit-tools/releases)
+[![GitHub issues](https://img.shields.io/github/issues/jlcodes99/cockpit-tools)](https://github.com/jlcodes99/cockpit-tools/issues)
+
+A **universal AI IDE account management tool**, currently supporting **Antigravity IDE**, **Codex**, **GitHub Copilot**, **Windsurf**, **Kiro**, **Cursor**, **Grok CLI**, **CodeBuddy**, **CodeBuddy CN**, **Qoder**, **Trae**, **TRAE SOLO**, **Trae CN**, **TRAE SOLO CN**, **Zed**, and **ZCode**, with multi-instance parallel workflows.
+
+> Designed to help users efficiently manage multiple AI IDE accounts, this tool supports one-click switching, quota monitoring, wake-up tasks, and multi-instance parallel runs, helping you fully utilize resources from different accounts.
+
+**Features**: One-click Switch · Multi-account Management · Multi-instance · Quota Monitoring · Wake-up Tasks · Plugin Integration · GitHub Copilot Management · Windsurf Management · Kiro Management · Cursor Management · Grok CLI Management · CodeBuddy Management · CodeBuddy CN Management · Qoder Management · Trae Suite Management · Zed Management · ZCode Management
+
+**Languages**: Supports 18 languages
+
+🇺🇸 English · 🇨🇳 简体中文 · 繁體中文 · 🇯🇵 日本語 · 🇩🇪 Deutsch · 🇪🇸 Español · 🇫🇷 Français · 🇮🇹 Italiano · 🇰🇷 한국어 · 🇧🇷 Português · 🇷🇺 Русский · 🇹🇷 Türkçe · 🇵🇱 Polski · 🇨🇿 Čeština · 🇸🇦 العربية · 🇻🇳 Tiếng Việt · 🇮🇩 Bahasa Indonesia
+
+**Officially supported platforms**: macOS, Windows, and Linux.
+
+---
+
+## Sponsors
+
+<table>
+  <tr>
+    <td width="120" align="center">
+      <a href="https://apikey.fan/register?aff=COCKPIT">
+        <img src="src/assets/icons/apikey-fun.png" alt="APIKEY.FUN" width="72" />
+      </a>
+    </td>
+    <td>
+      <a href="https://apikey.fan/register?aff=COCKPIT"><strong>APIKEY.FUN</strong></a> is a professional enterprise-grade AI relay focused on stable, efficient, and low-cost AI model API access for companies and individual developers. It supports popular models such as Claude, OpenAI, and Gemini, with prices as low as 7% of official pricing. Register through this project <a href="https://apikey.fan/register?aff=COCKPIT"><strong>exclusive link</strong></a> to receive an exclusive <strong>permanent 5% top-up discount</strong>.
+    </td>
+  </tr>
+  <tr>
+    <td width="120" align="center">
+      <a href="https://roxybrowser.cn?code=0326VTDA">
+        <img src="src/assets/icons/roxybrowser.jpg" alt="RoxyBrowser" width="96" />
+      </a>
+    </td>
+    <td>
+      <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser</strong></a> is an anti-detect browser for multi-account operations and AI automation, supporting isolated browser fingerprint environments, Cookie / storage isolation, Roxy native residential IPs, team collaboration, and API / MCP automation. It helps users manage AI account matrices, reduce account association risk, and improve long-term stability. Register or purchase through the Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>invite link</strong></a> to get a 10% fan discount.
+    </td>
+  </tr>
+</table>
+
+---
+
+## Feature Overview
+
+### 1. Dashboard
+
+A brand new visual dashboard providing a one-stop status overview:
+
+- **Sixteen-Platform Support**: Simultaneously displays Antigravity IDE, Codex, GitHub Copilot, Windsurf, Kiro, Cursor, Grok CLI, CodeBuddy, CodeBuddy CN, Qoder, Trae, TRAE SOLO, Trae CN, TRAE SOLO CN, Zed, and ZCode account status
+- **Quota Monitoring**: Real-time view of remaining quotas and reset times for each model
+- **Quick Actions**: One-click refresh, one-click wake-up
+- **Visual Progress**: Intuitive progress bars showing quota consumption
+
+> ![Dashboard Overview](docs/images/dashboard_overview.png)
+
+### 2. Antigravity IDE Account Management
+
+- **One-Click Switch**: Switch the currently active account instantly without manual login/logout
+- **Multiple Import Methods**: OAuth, Refresh Token, Plugin Sync
+- **Wake-up Tasks**: Schedule AI model wake-ups to trigger quota reset cycles in advance
+
+> ![Antigravity IDE Accounts](docs/images/antigravity_list.png)
+>
+> *(Wakeup Tasks)*
+> ![Wakeup Tasks](docs/images/wakeup_detail.png)
+
+#### 2.1 Antigravity IDE Multi-Instance
+
+Run multiple Antigravity IDE instances in parallel with different accounts. For example, open two Antigravity IDE instances, bind different accounts, and handle different projects independently.
+
+- **Isolated Accounts**: Each instance binds a different account and runs independently
+- **Parallel Projects**: Run multiple tasks/projects at the same time
+- **Argument Isolation**: Custom instance directory and launch arguments
+
+> ![Antigravity IDE Instances](docs/images/antigravity_instances.png)
+
+### 3. Codex Account Management
+
+- **Dedicated Support**: Optimized account management experience for Codex
+- **Quota Display**: Clear display of Hourly and Weekly quota status
+- **Plan Recognition**: Automatically identifies account Plan types (Basic, Plus, Team, etc.)
+- **ChatGPT official authorization**: Link independent OpenAI Sign in with ChatGPT access to an existing Codex account in a dedicated dialog by choosing official access under API Service → Manage members (Add accounts). The authorization URL and manual callback field appear automatically on opening. Copy the link, use an incognito window or submit the callback manually. The authorization dialog can be cancelled; authorizing an unjoined account only saves access and does not add it to the service. Compact badges on cards and account rows highlight valid linked authorization regardless of API Service membership; service membership is shown separately. Selecting Official first in API Service prefers the linked official grant. Recoverable authorization, route or connection failures first try the same account’s original local OAuth route, then follow the existing pool rules within the current key’s scope. Local only preserves an explicit choice. Fallback retains the grant and still checks account, model, quota, concurrency and proxy limits. Requests with output or uncertain execution are not replayed. Eligibility rejection pauses the official route until a successful check or new authorization; transient failures use bounded backoff before trying official access again. Official access sends at the default speed, omitting Fast/Ultrafast overrides. This adaptation is not an authorization rejection and does not trigger fallback or pause the model. If an actual error later causes local fallback, the original speed selection is retained, subject to local upstream support. Logs identify the original speed, the official default-speed adaptation, source account, actual rejections, preflight or paused-route skips, local attempts, upstream request IDs and final results. Upstream tier feedback is kept separately without assuming acceleration. Pelican tests and manual or scheduled wakeups prefer the original account’s linked official third-party authorization, regardless of service membership or whether API Service is running. Unlinked accounts keep their existing route. Pelican and wakeups still report an unusable linked grant instead of silently using the original credential, switching accounts or generating again. Service members keep the original account identity. A row dropdown between the name and priority selects Official first or Local only without moving other fields. Choosing Official first reuses access or opens OAuth; success updates the draft and cancellation keeps the prior route. Checkboxes and Save never open a guide; Save commits membership and access together. This version removes automatic official-authorization prompts on startup, page entry and ordinary account additions, as well as new-feature reminders. Accounts without official access use the local gateway by default; explicit existing access modes are preserved. Names, plans, quotas and groups continue to use the original account data. Codex client sign-in, account switching and instance binding are unchanged. Both credential sets are encrypted separately and refresh automatically. Initial consent saves and binds access directly; authorization and joining require no model selection, wakeup or test inference. Removing a service member retains its grant and last access mode for reuse with renewal when needed. Authorization is an additional capability on the original account; rows offer only Authorize or Manage access. Management and reauthorization never automatically join the service. Switching connection methods retains membership, key scopes and priorities. Removing official access explicitly either switches to the local gateway or pauses the retained member. Pause affects only the current API Service: the Rust engine blocks new requests to the member without changing client sign-in. Only explicit service removal removes the member. Authorization checks do not generate replies. Website revocation is detected during a check, request or renewal; no live revocation notification is provided. Image generation is blocked on the official route. The Rust native engine uses the official public Responses HTTP/SSE endpoint and supports local function/custom tools, client tool discovery and returned tool results. Clients execute tools; the gateway does not perform local operations for them. Client WebSockets bridge to HTTP/SSE; continuation uses local history checked against the caller and account, while unknown `previous_response_id` values still require complete `input`. The plan route does not provide compact, audio or unsupported hosted tools. Unknown subscriptions are not labeled Free. Local request and token statistics cover this service only; review remaining plan usage and manage access in ChatGPT settings.
+- **Automatic capability fallback**: If an account cannot handle a requested capability, API Service selects a compatible account within the current key’s authorized pool without a separate switch or backup list. Model mappings, quota and concurrency limits remain in effect; unknown capabilities first reach the current upstream, without paid probes. Switching sends necessary conversation content and consumes the destination account’s quota, with evidence retained in request details. Only definite pre-execution rejection with complete, safely portable history permits replacement. Partial or uncertain execution, private files, vector stores, containers and incompatible ciphertext are never discarded for a retry. Files, vector-store and container management endpoints are outside this feature.
+- **Claude model gateways**: Select Anthropic Messages in Codex model providers, enter the gateway URL and key, and choose `x-api-key` or Bearer authentication. Import Claude Code settings or Desktop Gateway JSON from the clipboard, fetch model IDs or enter them manually, then add the corresponding API-key account to API Service. Models appear in the service catalog and managed Codex model picker. Claude protocol behavior follows CLIProxyAPI `9717e325`: Rust supports streaming replies, client tool discovery, function/custom/namespace and MCP tool results, web-search result/citation replay, `/responses/compact` and inline compaction. Search results are cached within caller, account and session scopes so replay can retain Claude-specific fields omitted by Codex history. Compaction uses the selected Claude model to summarize the context and retain reusable continuation state. Client tools such as terminal commands, file edits and multiple agents still execute in Codex under its permission controls. Structured outputs use format instructions without a strict JSON Schema guarantee; web search requires upstream tool support, and the Claude adapter does not add server-side capabilities such as image generation that the upstream does not provide.
+- **API Service**: Runs exclusively in Rust inside the host, with Responses HTTP/SSE/WebSocket, context compaction, Chat Completions, Claude, Gemini and Ollama compatibility. Existing Go/legacy selections migrate automatically while retaining account pools, proxies, settings, ports, API keys and saved history. Instance gateways remain isolated by profile. The Go engine and engine switch are removed; no Go toolchain or sidecar is needed.
+- **Request identity comparison**: Rust request details compare the client’s original `Session-Id` and `Thread-Id` with each upstream attempt’s headers, account and transport. This local diagnostic metadata remains when body snapshots are disabled or cleared. Missing client headers and uncollected historical data are shown separately; current settings never backfill old records. Header capture does not establish that the upstream received the request.
+- **Automatic context continuation**: Rust automatically attempt continuation for historical conversations across account switches. Missing local ownership records alone no longer block requests; caller, account-pool permissions and profile isolation remain enforced. Complete Responses history is preserved unchanged, including reasoning, compaction, tool and subagent ciphertext plus `item.id` and `call_id`, without decryption, removal or replacement by summaries. Self-contained `input` can create a new upstream Session/Thread on an authorized target while retaining the client thread. Incremental requests use valid upstream state, complete checkpoints or WebSocket history; missing context or explicit upstream rejection can still cause failure while preserving original history. Rust registers message ciphertext ownership before forwarding completed official agent communication tool calls. Historical communication ciphertext without local records also attempts automatic continuation; new continuation ownership is saved only after a valid completed response. Rust retains plaintext/ciphertext history in local `codex_native_api/identity.sqlite`; instance gateways use `native-identity.sqlite` in each profile’s isolated directory, independently of body diagnostics and snapshots. Limits remain 8 MiB per checkpoint, 64 MiB and 128 checkpoints overall; eviction preserves session and ciphertext ownership records. Replay may increase input tokens. Upstream acceptance of ciphertext across accounts still needs validation with real requests. Failure does not replace successful generations, which survive upgrades and restarts. A new upstream conversation does not change the target account’s identity.
+- **Voice proxying**: Supports native Codex backend realtime routes and `/transcribe`, plus `/v1/audio/transcriptions`, `/v1/audio/translations`, `/v1/audio/speech` and aliases without `/v1`. OAuth transcription uses the ChatGPT backend: the compatible endpoint supports `file`, `language`, and JSON/text output; `model` is a compatibility field and the backend chooses the actual model. Timestamped subtitles, streaming transcription and other audio operations require an API-key provider supporting those APIs. Native `/transcribe` retains its multipart fields; API-key forwarding defaults to `gpt-4o-mini-transcribe` when that request omits a model. Requests are limited to 26 MiB and two minutes; uploaded audio is excluded from request snapshots. Only requests actually sent to the local gateway are handled. Configuring a model provider does not reroute clients that still use the official transcription service or enable a microphone restricted by the client itself. OAuth transcription may be rejected upstream, including `403 cloudflare challenge`; local adaptation cannot guarantee upstream acceptance. Codex clients bound to API Service retain native dictation controls and transcription. Their visibility and availability depend on the client’s native capabilities and settings; Cockpit does not take over dictation or force-enable the microphone. The official realtime voice button still requires ChatGPT sign-in. Gateway realtime routing selects OAuth credentials from the account pool independently of the linked account; API-key realtime routing is not enabled.
+
+> ![Codex Accounts](docs/images/codex_list.png)
+
+#### 3.1 Codex Multi-Instance
+
+Codex also supports parallel multi-instance usage. For example, open two Codex instances, bind different accounts, and handle different projects independently.
+
+- **Isolated Accounts**: Each instance binds a different account and runs independently
+- **Parallel Projects**: Run multiple tasks/projects at the same time
+- **Argument Isolation**: Custom instance directory and launch arguments
+
+> ![Codex Instances](docs/images/codex_instances.png)
+
+### 4. GitHub Copilot Account Management
+
+- **Account Import**: OAuth, Token/JSON import
+- **Quota View**: Inline Suggestions / Chat messages usage and reset time
+- **Plan Recognition**: Auto-detects Free / Individual / Pro / Business / Enterprise tiers
+- **Batch Operations**: Tags and bulk actions
+
+#### 4.1 GitHub Copilot Multi-Instance
+
+Manage VS Code Copilot instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: Each instance uses its own user data directory
+- **Quick Lifecycle**: Start/stop/force stop instances
+- **Window Control**: Open instance windows and close all instances
+
+### 5. Windsurf Account Management
+
+- **Account Import**: OAuth, Token/JSON import, and local import
+- **Quota View**: Shows Plan, User Prompt credits, Add-on prompt credits, and cycle information
+- **Batch Operations**: Tags and bulk actions
+- **Switch Injection**: Supports injecting and launching Windsurf after account switch
+
+#### 5.1 Windsurf Multi-Instance
+
+Manage Windsurf instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: Each instance uses its own user data directory
+- **Quick Lifecycle**: Start/stop/force stop instances
+- **Window Control**: Open instance windows and close all instances
+
+### 6. Kiro Account Management
+
+- **Account Import**: OAuth, Token/JSON import, and local import
+- **Quota View**: Shows Plan, User Prompt credits, Add-on prompt credits, and cycle information
+- **Batch Operations**: Tags and bulk actions
+- **Switch Injection**: Supports injecting and launching Kiro after account switch
+
+#### 6.1 Kiro Multi-Instance
+
+Manage Kiro instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: Each instance uses its own user data directory
+- **Quick Lifecycle**: Start/stop/force stop instances
+- **Window Control**: Open instance windows and close all instances
+
+### 7. Cursor Account Management
+
+- **Account Import**: OAuth, Token/JSON import, and local import
+- **Quota View**: Shows Total Usage, Auto + Composer, API Usage, On-Demand, and cycle information
+- **Batch Operations**: Tags and bulk actions
+- **Switch Injection**: Supports injecting and launching Cursor after account switch
+
+#### 7.1 Cursor Multi-Instance
+
+Manage Cursor instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: Each instance uses its own user data directory
+- **Quick Lifecycle**: Start/stop/force stop instances
+- **Window Control**: Open instance windows and close all instances
+
+
+### 8. Grok CLI Account Management
+
+- **OAuth Authorization**: Supports xAI's official OIDC device flow and saves the account after browser verification completes
+- **API Keys and Third-Party Endpoints**: Supports official xAI API keys plus OpenAI-compatible third-party `Base URL` and model IDs; configuration is written to an account-specific `config.toml`, while the key is injected only into the corresponding CLI process at launch
+- **Import and Redacted Export**: Imports official credentials from the default `~/.grok/auth.json` or supplied JSON; account-page exports and generic account backups omit access/refresh tokens, cannot restore a sign-in, and require a separate official `auth.json` import when migrating
+- **Real Account Switching**: Writes the selected account to the default `~/.grok/auth.json` in Grok CLI's official registry format while preserving other registry scopes in the file
+- **Quota and Plan**: Queries the official billing/user/subscriptions endpoints, displays cycle, usage, product quotas, and the raw plan value, and records Grok Code access
+- **Token Maintenance**: Supports automatic access-token refresh, refresh-token rotation, and quota alerts
+
+#### 8.1 Grok CLI Multi-Instance
+
+The default Grok CLI instance normally uses the official `~/.grok` directory directly and starts without setting `GROK_HOME`; managed instances use separate directories. API-key accounts, including third-party endpoints, always launch with an account-specific `GROK_HOME` so an official OAuth session cannot take credential precedence.
+
+- **Account Binding**: The default instance can follow the current account, while each managed instance can bind a different account
+- **Runtime Isolation**: Managed instances keep their `auth.json`, `config.toml`, working directories, and launch arguments separate
+- **Terminal Lifecycle**: Generate or execute terminal launch commands, stop instances, and close all instances
+- **Directory Protection**: Non-default instances are confined to the default managed root and moved to the trash when deleted; external paths from legacy configuration are only unregistered and are never written to or deleted
+
+### 9. CodeBuddy Account Management
+
+- **Account Import**: OAuth and Token/JSON import
+- **Quota View**: quota query, cycle details, and extra-credit display
+- **Batch Operations**: tags and bulk actions
+- **Switch Injection**: supports injecting and launching CodeBuddy after account switch
+
+#### 8.1 CodeBuddy Multi-Instance
+
+Manage CodeBuddy instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: Each instance uses its own user data directory
+- **Quick Lifecycle**: Start/stop/force stop instances
+- **Window Control**: Open instance windows and close all instances
+
+### 10. CodeBuddy CN Account Management
+
+- **Account Import**: supports OAuth, Token/JSON import, and local-client import
+- **Quota View**: shows plan and usage status, with a shortcut to open detailed quota information on the official web page
+- **Batch Operations**: supports tags and bulk actions
+- **Switch Injection**: supports writing local auth state back and launching CodeBuddy CN after account switch
+
+#### 9.1 CodeBuddy CN Multi-Instance
+
+Manage CodeBuddy CN instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: each instance uses its own user data directory
+- **Quick Lifecycle**: start/stop/force stop instances
+- **Window Control**: open instance windows and close all instances
+
+### 11. Qoder Account Management
+
+- **Account Import**: supports local import and JSON import
+- **Quota View**: shows Credits usage, remaining credits, and raw plan values
+- **Batch Operations**: supports tags, filters, export, and batch delete/refresh
+- **Switch Injection**: supports injecting and launching Qoder after account switch
+
+#### 10.1 Qoder Multi-Instance
+
+Manage Qoder instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: each instance uses its own user data directory
+- **Quick Lifecycle**: start/stop/force stop instances
+- **Window Control**: open instance windows and close all instances
+
+### 12. Trae Account Management
+
+- **Account Import**: supports local import and JSON import
+- **Quota View**: shows raw plan values, USD spent/total budget, and reset time
+- **Batch Operations**: supports tags, filters, export, and batch delete/refresh
+- **Trae Suite**: supports local import and switch injection for the default clients of Trae, TRAE SOLO, Trae CN, and TRAE SOLO CN; they appear independently by default and can be grouped manually in Top Layout
+- **Switch Injection**: supports writing back local auth state using each client's real on-disk rules and launching the target client
+
+#### 11.1 Trae Multi-Instance
+
+Manage original Trae client instances with isolated profiles and lifecycle controls.
+
+- **Isolated Profiles**: each instance uses its own user data directory
+- **Quick Lifecycle**: start/stop/force stop instances
+- **Window Control**: open instance windows and close all instances
+
+### 13. Zed Account Management
+
+- **Account Import**: Supports official OAuth sign-in, JSON import, and importing the current local sign-in state
+- **Usage View**: Shows subscription status, Edit Predictions, Token Spend, Spend Limit, and billing period end
+- **Batch Operations**: Supports tags, filters, export, and batch delete/refresh
+- **Switch Injection**: Applies the selected account back to the official Zed client using the client's real local persistence rules and restarts the client when needed
+
+### 14. ZCode Account Management
+
+- **Official Sign-in**: With ZCode closed, complete Z.ai or BigModel OAuth in Cockpit's built-in authorization window; it captures the official `zcode://` callback directly and saves the account
+- **Import and Export**: Read encrypted local credentials from `~/.zcode/v2/credentials.json`, import or export JSON, and back up accounts
+- **Quota View**: Query subscription plans and per-model quotas while preserving raw plan values
+- **Batch Operations**: Tags, search, plan filters, export, and batch delete/refresh
+- **Real Account Switching**: Encrypt and write the selected account back using ZCode's official credential format
+
+#### 13.1 ZCode Multi-Instance
+
+Manage ZCode instances with separate Electron user data, session data, and ZCode data directories.
+
+- **Account Binding**: Bind a different account to each instance or follow the current account
+- **Isolated Runtime**: Instance credentials and application data remain separate
+- **Lifecycle Controls**: Start, stop, focus, and close all managed instances
+
+### 15. General Settings
+
+- **Personalized Settings**: Theme switching, language settings, auto-refresh interval
+- **Platform Controls**: Centralized Grok CLI/CodeBuddy CN/Qoder/Trae suite/Zed/ZCode platform and quota-alert settings
+
+> ![Settings](docs/images/settings_page.png)
+
+---
+
+## Security & Privacy (Plain-English)
+
+These are the most common security questions answered directly:
+
+- **This is a local desktop tool**: it does not require a separate cloud account for this project, and it does not rely on a project-hosted cloud account storage.
+- **Data is mainly stored on your machine**:
+  - `~/.cockpit_tools`: accounts across platforms, shared settings, logs, backups, and instance settings; development uses `~/.cockpit_tools_dev`, and `COCKPIT_TOOLS_DATA_DIR` can select a custom directory
+  - Existing installations automatically gain the new directory entry in the background through a Unix symbolic link or Windows directory junction to `~/.antigravity_cockpit` / `~/.antigravity_cockpit_dev`. No manual migration is required. The physical legacy directory and existing instance paths remain intact, and both entries access the same data. The current session keeps its original path; subsequent launches use the new entry. If link creation fails, the legacy directory remains in use. If both names identify separate directories, the legacy directory remains in use without automatic merging or overwriting
+  - Managed instances default to `instances/<platform>` in the shared directory. On Windows, some platforms use `%APPDATA%\.cockpit_tools\instances\<platform>`, with the same automatic compatibility for legacy directories. Custom directories stay unchanged
+  - `~/.codex`: official Codex current login `auth.json`
+  - `~/.grok`: the official Grok CLI default instance and current sign-in `auth.json`
+  - `~/.zcode/v2`: ZCode encrypted credentials for the current official sign-in and quota cache
+  - system application data under `com.jlcodes.cockpit-tools`: host WebView state and related data; historical `com.antigravity.cockpit-tools` directories are used only for legacy data imports
+- **Grok CLI credentials are not encrypted**: access and refresh tokens are stored locally as plaintext JSON and rely primarily on operating-system account isolation and local file permissions. On Unix systems, credential directories are set to `0700` and credential files to `0600`. Redacted exports contain no tokens and cannot serve as sign-in backups.
+- **WebSocket is local-only by default**: binds to `127.0.0.1`, default port `19528`; you can disable it or change the port in Settings.
+- **When network access happens**: OAuth login, token refresh, quota fetching, update checks, and other official API requests.
+- **macOS privacy permission prompts**: after you start Codex/agent from Cockpit Tools, if an agent-run shell command accesses protected folders such as Desktop, Documents, Downloads, or Photos, macOS may show the request as "Cockpit Tools would like to access...". This happens because those commands are child processes launched by Cockpit Tools, so macOS attributes the request to the host app; it does not by itself mean the Cockpit Tools main process is actively scanning those folders. Grant access only when you trust the current agent task and the commands it is going to run. If unsure, deny the prompt or run the project from a normal working directory first.
+- **Practical safety tips**:
+  1. If you do not need plugin integration, disable WebSocket.
+  2. Do not share your full user directory directly; redact token files before backup/share.
+  3. On shared/public computers, remove accounts and quit the app after use.
+
+### WebSocket account-switch API
+
+`request.switch_account` can explicitly select the Antigravity client. Omitting `runtime_target`, or setting it to `"antigravity_ide"`, preserves the existing IDE switch flow and launch/dual-channel settings. It does not read the client selected in the frontend.
+
+To switch the Antigravity desktop app and the `agy` CLI that shares its system credential, send:
+
+```json
+{"type":"request.switch_account","payload":{"account_id":"<account-id>","request_id":"x","runtime_target":"antigravity","launch_on_switch":false}}
+```
+
+- `runtime_target: "antigravity"`: reuses desktop authentication rules; version 2.0 and later write the system credential and synchronize the desktop fallback file `~/.gemini/jetski-standalone-oauth-token`, preserving `id_token` and using `0600` permissions on Unix. Older versions write local SQLite login state. The current account, default-instance binding and switch notification are updated only after the credential and fallback writes succeed. A fallback synchronization failure explicitly reports that the system credential was written and asks you to retry.
+- `launch_on_switch`: only supported with `"antigravity"`, defaults to `false`; the client is neither closed nor started, and a running desktop app may use the new account on its next start. Explicit `true` uses the same close/write/relaunch flow as the desktop UI. Omit this field for IDE requests to keep using existing settings.
+- `request_id`: optional; when supplied, receives the corresponding `response.success` or `response.error`. Unsupported targets, credential-write failures and concurrent desktop switches return errors instead of success. A launch failure after a successful credential switch is explicitly reported as a launch error. Invalid targets return `WS_SWITCH_TARGET_INVALID`; supplying a launch policy for an IDE request returns `WS_SWITCH_LAUNCH_POLICY_INVALID`. Concurrent desktop switches return `ANTIGRAVITY_SWITCH_BUSY`, and account-preparation timeouts return `ANTIGRAVITY_SWITCH_PREPARATION_TIMEOUT`.
+- `ANTIGRAVITY_SWITCH_STATE_SAVE_FAILED` means the client credential changed but saving Tools' current-account state failed; retry the switch. Default-instance binding updates retain their existing best-effort behavior and log failures.
+
+## Settings Guide (Beginner Friendly)
+
+If you want a stable setup with minimal tuning, follow the "Recommended" values.
+
+### General Settings
+
+| Setting | What it does (simple) | Recommended | When to change |
+| --- | --- | --- | --- |
+| Display Language | Changes UI language | Your native/comfortable language | Only if current language is hard to read |
+| Theme | Light/dark appearance | System | Use dark mode for long night sessions |
+| Window Close Behavior | What happens when clicking close | Ask every time | Choose "Minimize to tray" if you want background running |
+| Antigravity IDE Auto Refresh | Periodically updates Antigravity IDE quota | 5-10 minutes | Use 2 minutes if you need near real-time updates |
+| Codex Auto Refresh | Periodically updates Codex quota | 5-10 minutes | Same as above |
+| GitHub Copilot Auto Refresh | Periodically updates GitHub Copilot quota | 5-10 minutes | Same as above |
+| Windsurf Auto Refresh | Periodically updates Windsurf quota | 5-10 minutes | Same as above |
+| Kiro Auto Refresh | Periodically updates Kiro quota | 5-10 minutes | Same as above |
+| Cursor Auto Refresh | Periodically updates Cursor quota | 5-10 minutes | Same as above |
+| Grok CLI Auto Refresh | Periodically refreshes tokens and updates quota | 5-10 minutes | Same as above |
+| CodeBuddy Auto Refresh | Periodically updates CodeBuddy quota | 5-10 minutes | Same as above |
+| CodeBuddy CN Auto Refresh | Periodically updates CodeBuddy CN quota | 5-10 minutes | Same as above |
+| Qoder Auto Refresh | Periodically updates Qoder quota | 5-10 minutes | Same as above |
+| Trae Auto Refresh | Periodically updates Trae suite account quota | 5-10 minutes | Same as above |
+| Zed Auto Refresh | Periodically updates Zed quota | 5-10 minutes | Same as above |
+| Data Directory | Where account/config files are stored | Keep default | Only for troubleshooting or backups |
+| Antigravity IDE/Codex/VS Code/Windsurf/Kiro/Cursor/Grok CLI/CodeBuddy/CodeBuddy CN/Qoder/Trae/Zed/OpenCode App Path | Manually set executable path | Leave empty (auto-detect) | Change only if auto-detect fails or you use custom install paths |
+| Auto-restart OpenCode on Codex switch | Sync OpenCode auth after Codex switch | ON if you use OpenCode; otherwise OFF | Enable for frequent Codex switching with OpenCode |
+
+Notes:
+- Smaller refresh intervals mean more frequent requests.
+- If quota-reset wake-up tasks are enabled, some minimum refresh limits may apply (UI will show hints).
+
+### Network Settings
+
+| Setting | What it does (simple) | Recommended | Risk / Notes |
+| --- | --- | --- | --- |
+| WebSocket Service | Real-time local integration for plugins/clients | OFF if not needed | Still local-only (`127.0.0.1`) when enabled |
+| Preferred Port | Listening port for WebSocket | Default `19528` | Change only on conflict; restart required after save |
+| Current Running Port | The actual active port | Read-only info | May differ if preferred port is occupied |
+
+### 3 Ready-to-Use Presets
+
+1. **Stable default**: 10-min refresh, WebSocket OFF (if no plugin), keep default paths.  
+2. **Frequent switching**: 2-5 min refresh, WebSocket ON if needed, OpenCode sync ON.  
+3. **Security-first**: WebSocket OFF, do not share user directory, remove unused accounts regularly.  
+
+---
+
+
+
+---
+
+## Installation Guide
+
+### Option A: Manual Download (Recommended)
+
+Go to [GitHub Releases](https://github.com/jlcodes99/cockpit-tools/releases) to download the package for your system:
+
+*   **macOS**: `.dmg` (Apple Silicon & Intel)
+*   **Windows**: `.msi` (Recommended), `.exe`, or `x64-portable.zip` (extract and run)
+
+Extract the Windows portable archive and run the included `Cockpit Tools.exe` (or the bundled main executable). Windows 10/11 with the Microsoft Edge WebView2 Runtime is required. Accounts and settings remain in the current Windows user's data directory and are not moved with the ZIP folder.
+*   **Linux**: `.deb` (Debian/Ubuntu), `.rpm`, or `.AppImage` (Universal)
+
+### Option B: Install with Homebrew (macOS)
+
+> Homebrew is required.
+
+```bash
+brew tap jlcodes99/cockpit-tools https://github.com/jlcodes99/cockpit-tools
+brew install --cask cockpit-tools
+```
+
+The macOS release pipeline requires Apple Developer ID signing and notarization; normal installation does not need `--no-quarantine`. Previously published unsigned versions do not become signed retroactively.
+
+If Homebrew says the app already exists (e.g. `already an App at '/Applications/Cockpit Tools.app'`), remove the old app and install again:
+
+```bash
+rm -rf "/Applications/Cockpit Tools.app"
+brew install --cask cockpit-tools
+```
+
+Or force overwrite the existing app:
+
+```bash
+brew install --cask --force cockpit-tools
+```
+
+### 🛠️ Troubleshooting
+
+#### macOS says "App is damaged and can't be opened"?
+
+The new macOS release pipeline verifies Developer ID signatures, Apple notarization and stapled tickets for the app, updater archive and final DMG. A normal first-launch confirmation that the app was downloaded from the Internet may still appear.
+
+If the warning persists, download a version explicitly marked as signed and notarized from the [official Releases](https://github.com/jlcodes99/cockpit-tools/releases), verify `SHA256SUMS.txt`, and reinstall. Historical unsigned packages, local development builds and modified apps may still be blocked. Do not assume that a security warning is a false alarm; normal installation does not require disabling Gatekeeper or removing quarantine attributes. When reporting a persistent issue, include the version, processor architecture and full message.
+
+---
+
+## Development & Build
+
+### Prerequisites
+
+- Node.js v18+
+- npm v9+
+- Rust (Tauri runtime)
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Development Mode
+
+```bash
+npm run tauri dev
+```
+
+### Build
+
+```bash
+npm run tauri build
+```
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jlcodes99/cockpit-tools&type=Date)](https://star-history.com/#jlcodes99/cockpit-tools&Date)
+
+---
+
+## Community
+
+Newly created Telegram chat group: [Join the group](https://t.me/+Y8gMv4SlZUU2MWY1)
+
+---
+
+## Sponsor
+
+If you find this project useful, consider supporting it here: [☕ Donate](docs/DONATE.en.md)
+
+Every bit of support helps sustain open-source development. Thank you!
+
+---
+
+## Acknowledgments
+
+- Antigravity account switching logic references: [Antigravity-Manager](https://github.com/lbjlaq/Antigravity-Manager)
+- The Codex API service integrates CLIProxyAPI. Codex Live WebRTC/sideband support, Responses WebSocket state safety, canonical token accounting v2, Multi-Agent V2 compatibility, Grok CLI accounts and OAuth, Grok `apply_patch` protocol compatibility, and account-pool error classification and recovery boundaries reference its open-source implementation: [router-for-me/CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) (MIT)
+- Third-party provider presets and model mapping for Codex, Claude CLI, and Claude Desktop Gateway, along with the approach to aggregating actual usage from session JSONL files, reference: [CC Switch](https://github.com/farion1231/cc-switch)
+- The optional Claude sign-in helper runtime is based on: [Electron](https://github.com/electron/electron)
+- Codex account proxies use [Mihomo](https://github.com/MetaCubeX/mihomo) as a separate process for supported Clash nodes and groups. Configuration semantics for node options, nested groups, and built-in blocking policies, local connection-log APIs, health checks, and failover design reference its official source and documentation. Users explicitly download or import the engine; the host installer does not bundle it. This does not imply an official partnership.
+
+Thanks to the authors of these projects for their open-source contributions! If these projects have helped you, please give them a ⭐ Star to show your support!
+---
+
+## License
+
+This project is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+- Allowed: personal learning, research, and non-commercial use/modification (with attribution and share-alike obligations).
+- Not allowed: any commercial use without authorization (including internal commercial operations, external paid services, paid product integration, or resale/redistribution for profit).
+- Commercial license: contact the author for a separate written commercial license and pricing.
+
+---
+
+## Disclaimer
+
+This project is for personal learning and research purposes only. By using this project, you agree to:
+
+- Not use this project for any commercial purposes without prior written authorization from the author
+- Bear all risks and responsibilities of using this project
+- Comply with relevant terms of service and laws and regulations
+
+The project author is not responsible for any direct or indirect losses arising from the use of this project.

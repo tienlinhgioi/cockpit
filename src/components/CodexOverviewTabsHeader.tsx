@@ -1,0 +1,44 @@
+import { useEffect, type ReactNode } from 'react';
+import {
+  PlatformOverviewTabsHeader,
+  PlatformOverviewTab,
+} from './platform/PlatformOverviewTabsHeader';
+import { CODEX_SUITE_ENSURE_MOUNTED_EVENT } from '../utils/codexAddAccountRequest';
+
+export type CodexTab = PlatformOverviewTab;
+
+interface CodexOverviewTabsHeaderProps {
+  pageRegistry?: { id: CodexTab; label: string; icon: ReactNode }[];
+  active: CodexTab;
+  onTabChange?: (tab: CodexTab) => void;
+  tabs?: CodexTab[];
+  tabPlacement?: Partial<Record<CodexTab, 'top' | 'more'>>;
+}
+
+export function CodexOverviewTabsHeader({
+  active,
+  onTabChange,
+  tabs,
+  tabPlacement,
+  pageRegistry,
+}: CodexOverviewTabsHeaderProps) {
+  useEffect(() => {
+    if (!onTabChange) return;
+    const showSharedAccountModal = () => onTabChange('overview');
+    window.addEventListener(CODEX_SUITE_ENSURE_MOUNTED_EVENT, showSharedAccountModal);
+    return () => {
+      window.removeEventListener(CODEX_SUITE_ENSURE_MOUNTED_EVENT, showSharedAccountModal);
+    };
+  }, [onTabChange]);
+
+  return (
+    <PlatformOverviewTabsHeader
+      pageRegistry={pageRegistry}
+      platform="codex"
+      active={active}
+      onTabChange={onTabChange}
+      tabs={tabs}
+      tabPlacement={tabPlacement}
+    />
+  );
+}

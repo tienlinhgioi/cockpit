@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "identifier": "io.github.tienlinhgioi.cockpit",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Cockpit Tools",
+        "fullscreen": false,
+        "resizable": true
+      }
+    ]
+  },
+  "bundle": {
+    "createUpdaterArtifacts": false,
+    "resources": {},
+    "android": {
+      "minSdkVersion": 26
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": null
+    },
+    "updater": null
+  }
+}

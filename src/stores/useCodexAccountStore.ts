@@ -1,0 +1,622 @@
+import { create } from 'zustand';
+import {
+  CodexAccount,
+  CodexAccountNoteUpdate,
+  CodexApiProviderMode,
+  CodexAppSpeed,
+  CodexProviderWireApi,
+  CodexQuota,
+  hasCodexAccountStructure,
+  hasCodexAccountName,
+  isCodexTeamLikePlan,
+  isCodexPendingOAuthAccount,
+  isCodexApiKeyAccount,
+  isCodexAgentIdentityAccount,
+} from '../types/codex';
+import * as codexService from '../services/codexService';
+import { removeAccountIdsFromAllCodexGroups } from '../services/codexAccountGroupService';
+import { emitAccountsChanged, emitCurrentAccountChanged } from '../utils/accountSyncEvents';
+import { withoutCachedProxySecret } from '../utils/codexProxyCache';
+import { createSerialAccountRefreshQueue } from '../utils/serialAccountRefreshQueue';
+import { createCoalescedWriter } from '../utils/coalescedWriter';
+import { mergeCodexProfileResult } from '../utils/codexProfileRefresh';
+import { mergeCodexQuotaUpdate, type CodexQuotaUpdate } from '../utils/codexQuotaSync';
+
+const quotaUpdates = new Map<string, CodexQuotaUpdate>();
+const reconcileQuotaUpdate = (account: CodexAccount) => mergeCodexQuotaUpdate(account, quotaUpdates.get(account.id));
+
+const APP_PROFILE = (import.meta.env.VITE_COCKPIT_TOOLS_PROFILE || '').trim();
+const STORAGE_PROFILE_SUFFIX = APP_PROFILE && APP_PROFILE !== 'prod' ? `.${APP_PROFILE}` : '';
+const CODEX_ACCOUNTS_CACHE_KEY = `agtools.codex.accounts.cache${STORAGE_PROFILE_SUFFIX}`;
+const CODEX_CURRENT_ACCOUNT_CACHE_KEY = `agtools.codex.accounts.current${STORAGE_PROFILE_SUFFIX}`;
+const CODEX_PROFILE_SYNC_RETRY_INTERVAL_MS = 5 * 60 * 1000;
+let fetchCodexAccountsSeq = 0;
+let fetchCodexCurrentAccountSeq = 0;
+
+/** Invalidate in-flight list/current fetches so mutations cannot be overwritten. */
+function invalidateCodexFetchRequests() {
+  fetchCodexAccountsSeq += 1;
+  fetchCodexCurrentAccountSeq += 1;
+}
+
+const loadCachedCodexAccounts = () => {
+  try {
+    const raw = localStorage.getItem(CODEX_ACCOUNTS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const accounts = parsed.filter((account) => account && typeof account === 'object');
+    const sanitized = accounts.map(withoutCachedProxySecret);
+    if (accounts.some((account) => Object.prototype.hasOwnProperty.call(account, 'egress_proxy_url'))) {
+      try { localStorage.setItem(CODEX_ACCOUNTS_CACHE_KEY, JSON.stringify(sanitized)); } catch { /* cache is optional */ }
+    }
+    return sanitized;
+  } catch {
+    return [];
+  }
+};
+
+const loadCachedCodexCurrentAccount = () => {
+  try {
+    const raw = localStorage.getItem(CODEX_CURRENT_ACCOUNT_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CodexAccount | null;
+    if (!parsed || typeof parsed !== 'object') return null;
+    const sanitized = withoutCachedProxySecret(parsed);
+    if (Object.prototype.hasOwnProperty.call(parsed, 'egress_proxy_url')) {
+      try { localStorage.setItem(CODEX_CURRENT_ACCOUNT_CACHE_KEY, JSON.stringify(sanitized)); } catch { /* cache is optional */ }
+    }
+    return sanitized;
+  } catch {
+    return null;
+  }
+};
+
+const initialCachedCodexAccounts = loadCachedCodexAccounts();
+const initialCachedCodexCurrentAccount = loadCachedCodexCurrentAccount();
+
+const codexAccountsCacheWriter = createCoalescedWriter((accounts: CodexAccount[]) => {
+  try {
+    localStorage.setItem(CODEX_ACCOUNTS_CACHE_KEY, JSON.stringify(accounts.map(withoutCachedProxySecret)));
+  } catch {
+    // ignore cache write failures
+  }
+});
+const persistCodexAccountsCache = codexAccountsCacheWriter.schedule;
+window.addEventListener('pagehide', codexAccountsCacheWriter.flush);
+
+const persistCodexCurrentAccountCache = (account: CodexAccount | null) => {
+  try {
+    if (!account) {
+      localStorage.removeItem(CODEX_CURRENT_ACCOUNT_CACHE_KEY);
+      return;
+    }
+    localStorage.setItem(CODEX_CURRENT_ACCOUNT_CACHE_KEY, JSON.stringify(withoutCachedProxySecret(account)));
+  } catch {
+    // ignore cache write failures
+  }
+};
+
+const shouldHydrateCodexProfile = (account: CodexAccount): boolean =>
+  !isCodexApiKeyAccount(account) &&
+  !isCodexAgentIdentityAccount(account) &&
+  !isCodexPendingOAuthAccount(account) &&
+  (!hasCodexAccountStructure(account) ||
+    (isCodexTeamLikePlan(account.plan_type) && !hasCodexAccountName(account)));
+
+const CODEX_STALE_ACCOUNT_ERROR = 'CODEX_STALE_ACCOUNT';
+
+const mergeCodexAccountIntoList = (
+  accounts: CodexAccount[],
+  account: CodexAccount,
+): CodexAccount[] => {
+  const index = accounts.findIndex((item) => item.id === account.id);
+  if (index < 0) {
+    return [account, ...accounts];
+  }
+  const next = [...accounts];
+  next[index] = account;
+  return next;
+};
+
+type FetchCodexAccountsOptions = {
+  allowEmpty?: boolean;
+  throwOnError?: boolean;
+};
+
+type FetchCodexCurrentAccountOptions = {
+  allowEmpty?: boolean;
+  throwOnError?: boolean;
+};
+
+type SwitchCodexAccountOptions = {
+  reauthTokenGeneration?: number;
+  reconcileAfterSwitch?: boolean;
+  launchAfterSwitch?: boolean;
+};
+
+interface CodexAccountState {
+  accounts: CodexAccount[];
+  accountsLoaded: boolean;
+  currentAccount: CodexAccount | null;
+  loading: boolean;
+  error: string | null;
+
+  // Actions
+  fetchAccounts: (options?: FetchCodexAccountsOptions) => Promise<void>;
+  fetchCurrentAccount: (options?: FetchCodexCurrentAccountOptions) => Promise<void>;
+  restoreActiveTakeoverIfNeeded: () => Promise<void>;
+  applyAccountSnapshot: (account: CodexAccount) => void;
+  applyQuotaUpdate: (update: CodexQuotaUpdate) => void;
+  switchAccount: (accountId: string, options?: SwitchCodexAccountOptions) => Promise<CodexAccount>;
+  deleteAccount: (accountId: string) => Promise<void>;
+  deleteAccounts: (accountIds: string[]) => Promise<void>;
+  refreshQuota: (accountId: string) => Promise<CodexQuota>;
+  refreshSubscriptionInfo: (accountId: string) => Promise<CodexAccount>;
+  refreshAllQuotas: () => Promise<number>;
+  hydrateAccountProfilesIfNeeded: (accountIds?: string[]) => Promise<void>;
+  importFromLocal: (instanceId?: string | null) => Promise<CodexAccount>;
+  importFromJson: (jsonContent: string) => Promise<CodexAccount[]>;
+  updateAccountName: (accountId: string, name: string) => Promise<CodexAccount>;
+  updateApiKeyCredentials: (
+    accountId: string,
+    apiKey: string,
+    apiBaseUrl?: string,
+    apiProviderMode?: CodexApiProviderMode,
+    apiProviderId?: string,
+    apiProviderName?: string,
+    apiModelCatalog?: string[],
+    apiSupportsVision?: boolean,
+    apiModelVisionSupport?: Record<string, boolean>,
+    apiVisionRoutingModel?: string,
+    apiWireApi?: CodexProviderWireApi,
+    apiSupportsWebsockets?: boolean,
+    apiSyncModelCatalogToCodex?: boolean,
+    accountName?: string,
+    apiModelContextWindows?: Record<string, number>,
+    apiAuthScheme?: "x-api-key" | "bearer",
+  ) => Promise<CodexAccount>;
+  updateApiKeyBoundOAuthAccount: (
+    accountId: string,
+    boundOauthAccountId: string | null,
+  ) => Promise<CodexAccount>;
+  updateAccountTags: (accountId: string, tags: string[]) => Promise<CodexAccount>;
+  updateAccountEgressProxy: (
+    accountId: string,
+    egressProxyUrl: string | null,
+    disabled?: boolean,
+  ) => Promise<CodexAccount>;
+  updateAccountNote: (
+    accountId: string,
+    update: string | CodexAccountNoteUpdate,
+  ) => Promise<CodexAccount>;
+  updateAccountAppSpeed: (accountId: string, speed: CodexAppSpeed) => Promise<CodexAccount>;
+  updateAccountInstanceAccess: (
+    accountId: string,
+    accessMode?: string | null,
+    startupModel?: string | null,
+    imageGenerationAccountIds?: string[] | null,
+    imageGenerationAccountModels?: Record<string, string> | null,
+  ) => Promise<CodexAccount>;
+}
+
+export const useCodexAccountStore = create<CodexAccountState>((set, get) => ({
+  accounts: initialCachedCodexAccounts,
+  accountsLoaded: initialCachedCodexAccounts.length > 0,
+  currentAccount: initialCachedCodexCurrentAccount,
+  loading: false,
+  error: null,
+
+  fetchAccounts: async (options?: FetchCodexAccountsOptions) => {
+    void options;
+    const requestId = ++fetchCodexAccountsSeq;
+    set({ loading: true, error: null });
+    try {
+      const accounts = (await codexService.listCodexAccounts()).map(reconcileQuotaUpdate);
+      if (requestId !== fetchCodexAccountsSeq) {
+        return;
+      }
+      set({ accounts, accountsLoaded: true, loading: false });
+      persistCodexAccountsCache(accounts);
+      void get().hydrateAccountProfilesIfNeeded(accounts.map((account) => account.id));
+    } catch (e) {
+      if (requestId !== fetchCodexAccountsSeq) {
+        if (options?.throwOnError) throw e;
+        return;
+      }
+      set({ error: String(e), loading: false });
+      if (options?.throwOnError) throw e;
+    }
+  },
+
+  fetchCurrentAccount: async (options?: FetchCodexCurrentAccountOptions) => {
+    void options;
+    const requestId = ++fetchCodexCurrentAccountSeq;
+    try {
+      const fetched = await codexService.getCurrentCodexAccount();
+      const currentAccount = fetched ? reconcileQuotaUpdate(fetched) : null;
+      if (requestId !== fetchCodexCurrentAccountSeq) {
+        return;
+      }
+      set({ currentAccount });
+      persistCodexCurrentAccountCache(currentAccount);
+    } catch (e) {
+      if (requestId !== fetchCodexCurrentAccountSeq) {
+        if (options?.throwOnError) throw e;
+        return;
+      }
+      console.error('获取当前 Codex 账号失败:', e);
+      if (options?.throwOnError) throw e;
+    }
+  },
+
+  restoreActiveTakeoverIfNeeded: async () => {
+    try {
+      await codexService.restoreCodexActiveTakeoverIfEnabled();
+    } catch (e) {
+      console.warn('[Codex Store] 自动恢复接管失败:', e);
+    }
+  },
+
+  applyAccountSnapshot: (account: CodexAccount) => {
+    if (!account?.id) return;
+    account = reconcileQuotaUpdate(account);
+
+    // 授权/切号返回的账号是后端刚落盘的权威快照，先写入内存和 localStorage，
+    // 同时使旧的异步回读失效，避免旧结果把刚更新的状态覆盖回去。
+    invalidateCodexFetchRequests();
+    set((state) => {
+      const nextAccounts = mergeCodexAccountIntoList(state.accounts, account);
+      const nextCurrentAccount =
+        state.currentAccount?.id === account.id ? account : state.currentAccount;
+      persistCodexAccountsCache(nextAccounts);
+      persistCodexCurrentAccountCache(nextCurrentAccount);
+      return {
+        accounts: nextAccounts,
+        currentAccount: nextCurrentAccount,
+        error: null,
+      };
+    });
+  },
+
+  applyQuotaUpdate: (update) => {
+    if (!update?.account_id || !update.quota || !Number.isFinite(update.sequence)) return;
+    const previous = quotaUpdates.get(update.account_id);
+    if (previous && previous.sequence >= update.sequence) return;
+    quotaUpdates.set(update.account_id, update);
+    // Bound retained updates, including accounts deleted in another window.
+    if (quotaUpdates.size > 1024) quotaUpdates.delete(quotaUpdates.keys().next().value!);
+    set((state) => {
+      const accounts = state.accounts.map((account) => account.id === update.account_id ? mergeCodexQuotaUpdate(account, update) : account);
+      const currentAccount = state.currentAccount ? mergeCodexQuotaUpdate(state.currentAccount, update) : null;
+      persistCodexAccountsCache(accounts);
+      if (currentAccount !== state.currentAccount) persistCodexCurrentAccountCache(currentAccount);
+      // Keep list/current fetches alive; their results merge these newer quota
+      // fields instead of discarding unrelated additions or leaving loading set.
+      return { accounts, currentAccount };
+    });
+  },
+
+  switchAccount: async (accountId: string, options?: SwitchCodexAccountOptions) => {
+    const flowStartedAt = performance.now();
+    console.info('[Codex Switch][Store] switchAccount started', {
+      accountId,
+    });
+    const accounts = (await codexService.listCodexAccounts()).map(reconcileQuotaUpdate);
+    console.info('[Codex Switch][Store] listCodexAccounts finished', {
+      accountId,
+      elapsedMs: Math.round(performance.now() - flowStartedAt),
+    });
+    // Drop any in-flight fetch results before applying mutation state.
+    invalidateCodexFetchRequests();
+    set({ accounts, accountsLoaded: true, loading: false, error: null });
+    persistCodexAccountsCache(accounts);
+
+    const targetExists = accounts.some((account) => account.id === accountId);
+    if (!targetExists) {
+      const currentAccount = await codexService.getCurrentCodexAccount();
+      invalidateCodexFetchRequests();
+      set({ currentAccount });
+      persistCodexCurrentAccountCache(currentAccount);
+      throw new Error(CODEX_STALE_ACCOUNT_ERROR);
+    }
+
+    let account: CodexAccount;
+    try {
+      account = await codexService.switchCodexAccount(accountId, {
+        reauthTokenGeneration: options?.reauthTokenGeneration,
+        launchAfterSwitch: options?.launchAfterSwitch,
+      });
+      account = reconcileQuotaUpdate(account);
+    } catch (error) {
+      // 失败既可能发生在凭据预检，也可能发生在已切号后的启动阶段。
+      // 后台回读账号库与真实 current，不能凭错误猜测是否已完成落盘，
+      // 也不能让回读阻塞当前错误提示。
+      void Promise.allSettled([get().fetchAccounts(), get().fetchCurrentAccount()]);
+      throw error;
+    }
+    console.info('[Codex Switch][Store] switchCodexAccount finished', {
+      accountId,
+      elapsedMs: Math.round(performance.now() - flowStartedAt),
+    });
+    invalidateCodexFetchRequests();
+    set((state) => {
+      const nextAccounts = mergeCodexAccountIntoList(state.accounts, account);
+      persistCodexAccountsCache(nextAccounts);
+      persistCodexCurrentAccountCache(account);
+      return {
+        accounts: nextAccounts,
+        currentAccount: account,
+        loading: false,
+        error: null,
+      };
+    });
+    // The command already returned the authoritative, persisted account. Avoid
+    // another full-list read and render/aggregation wave on every successful switch.
+    if (options?.reconcileAfterSwitch) {
+      await get().fetchAccounts();
+      await get().fetchCurrentAccount();
+    } else {
+      void get().hydrateAccountProfilesIfNeeded([account.id]);
+    }
+    await emitCurrentAccountChanged({
+      platformId: 'codex',
+      accountId: account.id,
+      reason: 'switch',
+    });
+    console.info('[Codex Switch][Store] switchAccount finished', {
+      accountId,
+      elapsedMs: Math.round(performance.now() - flowStartedAt),
+    });
+    return account;
+  },
+
+  deleteAccount: async (accountId: string) => {
+    const previousCurrentAccountId = get().currentAccount?.id ?? null;
+    await codexService.deleteCodexAccount(accountId);
+    void removeAccountIdsFromAllCodexGroups([accountId]);
+    invalidateCodexFetchRequests();
+    set((state) => {
+      const nextAccounts = state.accounts.filter((account) => account.id !== accountId);
+      const nextCurrentAccount =
+        state.currentAccount?.id === accountId ? null : state.currentAccount;
+      persistCodexAccountsCache(nextAccounts);
+      persistCodexCurrentAccountCache(nextCurrentAccount);
+      return {
+        accounts: nextAccounts,
+        currentAccount: nextCurrentAccount,
+        loading: false,
+        error: null,
+      };
+    });
+    await emitAccountsChanged({
+      platformId: 'codex',
+      reason: 'delete',
+    });
+    const nextCurrentAccountId = get().currentAccount?.id ?? null;
+    if (previousCurrentAccountId !== nextCurrentAccountId) {
+      await emitCurrentAccountChanged({
+        platformId: 'codex',
+        accountId: nextCurrentAccountId,
+        reason: 'delete',
+      });
+    }
+  },
+
+  deleteAccounts: async (accountIds: string[]) => {
+    const previousCurrentAccountId = get().currentAccount?.id ?? null;
+    const deleteIdSet = new Set(accountIds);
+    await codexService.deleteCodexAccounts(accountIds);
+    void removeAccountIdsFromAllCodexGroups(accountIds);
+    invalidateCodexFetchRequests();
+    set((state) => {
+      const nextAccounts = state.accounts.filter((account) => !deleteIdSet.has(account.id));
+      const nextCurrentAccount =
+        state.currentAccount && deleteIdSet.has(state.currentAccount.id)
+          ? null
+          : state.currentAccount;
+      persistCodexAccountsCache(nextAccounts);
+      persistCodexCurrentAccountCache(nextCurrentAccount);
+      return {
+        accounts: nextAccounts,
+        currentAccount: nextCurrentAccount,
+        loading: false,
+        error: null,
+      };
+    });
+    await emitAccountsChanged({
+      platformId: 'codex',
+      reason: 'delete',
+    });
+    const nextCurrentAccountId = get().currentAccount?.id ?? null;
+    if (previousCurrentAccountId !== nextCurrentAccountId) {
+      await emitCurrentAccountChanged({
+        platformId: 'codex',
+        accountId: nextCurrentAccountId,
+        reason: 'delete',
+      });
+    }
+  },
+
+  refreshQuota: async (accountId: string) => {
+    const account = get().accounts.find((item) => item.id === accountId);
+    if (account && isCodexPendingOAuthAccount(account)) {
+      throw new Error('CODEX_PENDING_OAUTH_ACCOUNT');
+    }
+    try {
+      return await codexService.refreshCodexQuota(accountId);
+    } finally {
+      await get().fetchAccounts();
+      await get().fetchCurrentAccount();
+    }
+  },
+
+  refreshSubscriptionInfo: async (accountId: string) => {
+    const account = await codexService.refreshCodexSubscriptionInfo(accountId);
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return account;
+  },
+
+  refreshAllQuotas: async () => {
+    const successCount = await codexService.refreshAllCodexQuotas();
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return successCount;
+  },
+
+  hydrateAccountProfilesIfNeeded: async (accountIds?: string[]) => {
+    await codexProfileRefreshQueue.enqueue(accountIds ?? get().accounts.map((account) => account.id));
+  },
+
+  importFromLocal: async (instanceId?: string | null) => {
+    const account = await codexService.importCodexFromLocal(instanceId);
+    await get().fetchAccounts();
+    await emitAccountsChanged({
+      platformId: 'codex',
+      reason: 'import',
+    });
+    return account;
+  },
+
+  importFromJson: async (jsonContent: string) => {
+    const accounts = await codexService.importCodexFromJson(jsonContent);
+    await get().fetchAccounts();
+    await emitAccountsChanged({
+      platformId: 'codex',
+      reason: 'import',
+    });
+    return accounts;
+  },
+
+  updateAccountName: async (accountId: string, name: string) => {
+    const account = await codexService.updateCodexAccountName(accountId, name);
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return account;
+  },
+
+  updateApiKeyCredentials: async (
+    accountId: string,
+    apiKey: string,
+    apiBaseUrl?: string,
+    apiProviderMode?: CodexApiProviderMode,
+    apiProviderId?: string,
+    apiProviderName?: string,
+    apiModelCatalog?: string[],
+    apiSupportsVision?: boolean,
+    apiModelVisionSupport?: Record<string, boolean>,
+    apiVisionRoutingModel?: string,
+    apiWireApi?: CodexProviderWireApi,
+    apiSupportsWebsockets?: boolean,
+    apiSyncModelCatalogToCodex?: boolean,
+    accountName?: string,
+    apiModelContextWindows?: Record<string, number>,
+    apiAuthScheme?: "x-api-key" | "bearer",
+  ) => {
+    const account = await codexService.updateCodexApiKeyCredentials(
+      accountId,
+      apiKey,
+      apiBaseUrl,
+      apiProviderMode,
+      apiProviderId,
+      apiProviderName,
+      apiModelCatalog,
+      apiSupportsVision,
+      apiModelVisionSupport,
+      apiVisionRoutingModel,
+      apiWireApi,
+      apiSupportsWebsockets,
+      apiSyncModelCatalogToCodex,
+      accountName,
+      apiModelContextWindows,
+      apiAuthScheme,
+    );
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return account;
+  },
+
+  updateApiKeyBoundOAuthAccount: async (accountId: string, boundOauthAccountId: string | null) => {
+    const account = await codexService.updateCodexApiKeyBoundOAuthAccount(
+      accountId,
+      boundOauthAccountId,
+    );
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return account;
+  },
+
+  updateAccountTags: async (accountId: string, tags: string[]) => {
+    const account = await codexService.updateCodexAccountTags(accountId, tags);
+    await get().fetchAccounts();
+    return account;
+  },
+
+  updateAccountEgressProxy: async (accountId: string, egressProxyUrl: string | null, disabled = false) => {
+    const account = await codexService.updateCodexAccountEgressProxy(accountId, egressProxyUrl, disabled);
+    get().applyAccountSnapshot(account);
+    return account;
+  },
+
+  updateAccountNote: async (accountId: string, update: string | CodexAccountNoteUpdate) => {
+    const account = await codexService.updateCodexAccountNote(accountId, update);
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return account;
+  },
+
+  updateAccountAppSpeed: async (accountId: string, speed: CodexAppSpeed) => {
+    const account = await codexService.updateCodexAccountAppSpeed(accountId, speed);
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return account;
+  },
+
+  updateAccountInstanceAccess: async (
+    accountId: string,
+    accessMode?: string | null,
+    startupModel?: string | null,
+    imageGenerationAccountIds?: string[] | null,
+    imageGenerationAccountModels?: Record<string, string> | null,
+  ) => {
+    const account = await codexService.updateCodexAccountInstanceAccess(
+      accountId,
+      accessMode,
+      startupModel,
+      imageGenerationAccountIds,
+      imageGenerationAccountModels,
+    );
+    await get().fetchAccounts();
+    await get().fetchCurrentAccount();
+    return account;
+  },
+}));
+
+const codexProfileRefreshQueue = createSerialAccountRefreshQueue({
+  retryIntervalMs: CODEX_PROFILE_SYNC_RETRY_INTERVAL_MS,
+  shouldRun: (id) => {
+    const account = useCodexAccountStore.getState().accounts.find((item) => item.id === id);
+    return !!account && shouldHydrateCodexProfile(account);
+  },
+  run: async (id) => {
+    const original = useCodexAccountStore.getState().accounts.find((item) => item.id === id);
+    if (!original) return;
+    const refreshed = await codexService.refreshCodexAccountProfile(id);
+    useCodexAccountStore.setState((state) => {
+      const index = state.accounts.findIndex((item) => item.id === id);
+      if (index < 0) return state;
+      const merged = mergeCodexProfileResult(state.accounts[index], original, refreshed);
+      if (merged === state.accounts[index]) return state;
+      const accounts = [...state.accounts];
+      accounts[index] = merged;
+      const currentAccount = state.currentAccount?.id === id
+        ? mergeCodexProfileResult(state.currentAccount, original, refreshed)
+        : state.currentAccount;
+      persistCodexAccountsCache(accounts);
+      if (currentAccount !== state.currentAccount) persistCodexCurrentAccountCache(currentAccount);
+      return { accounts, currentAccount };
+    });
+  },
+  onError: (id, error) => console.warn('刷新 Codex 账号资料失败:', id, error),
+});

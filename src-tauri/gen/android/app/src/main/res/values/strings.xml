@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Cockpit Tools</string>
+    <string name="main_activity_title">Cockpit Tools</string>
+    <string name="service_channel_name">Gateway service</string>
+    <string name="service_channel_description">Shown while the local API gateway and management API are kept running in the foreground.</string>
+    <string name="service_notification_title">Cockpit Tools is running</string>
+    <string name="service_default_status">Local gateway / management API active</string>
+    <string name="service_action_stop">Stop</string>
+</resources>
