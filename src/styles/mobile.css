@@ -153,3 +153,82 @@ html.platform-android .drag-region {
   background: var(--bg-hover, rgba(127, 127, 127, 0.15));
   word-break: break-all;
 }
+
+
+/* ---- Fixes found by rendering at 412x892 -------------------------------------------------
+ * The default "classic" side-nav layout carries its own (scaled) rules; these selectors are
+ * deliberately more specific so the bottom bar wins over them. */
+html.platform-android .side-nav.side-nav-classic,
+html.platform-android .app-container .side-nav {
+  background: var(--bg-card, #fff) !important;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12);
+  width: 100% !important;
+  max-width: 100vw;
+  inset-inline: 0 !important;
+  bottom: 0 !important;
+  top: auto !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  padding-top: 6px !important;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  gap: 4px !important;
+}
+
+html.platform-android .side-nav .nav-items,
+html.platform-android .side-nav .nav-bottom-actions,
+html.platform-android .side-nav.side-nav-classic .nav-items,
+html.platform-android .side-nav.side-nav-classic .nav-bottom-actions {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  gap: 4px !important;
+}
+
+html.platform-android .side-nav .nav-item,
+html.platform-android .side-nav.side-nav-classic .nav-item {
+  flex: 0 0 auto !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  justify-content: center !important;
+}
+
+html.platform-android .side-nav .nav-item .nav-item-text,
+html.platform-android .side-nav.side-nav-classic .nav-item .nav-item-text,
+html.platform-android .side-nav .side-nav-more-manage {
+  display: none !important;
+}
+
+/* Page title row: stack instead of overlapping the action buttons */
+html.platform-android .page-tabs-row {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 0 !important;
+}
+
+html.platform-android .page-tabs-label,
+html.platform-android .page-tabs-label.dashboard-title-label {
+  position: static !important;
+  transform: none !important;
+  max-width: 100%;
+}
+
+html.platform-android .dashboard-top-actions {
+  margin-left: 0;
+  flex-wrap: wrap;
+}
