@@ -33,9 +33,13 @@ real Claude/Codex/Antigravity services.**
 
 ## 2. APK facts (from the built file)
 
-* `cockpit-tools-android-arm64-test-signed.apk` — see `.sha256` next to it for the hash.
+* `cockpit-tools-android-arm64-test-signed.apk` — built 2026-11-03 01:27 UTC from branch head
+  at that time; SHA-256 `8f0f6bdab991e0e157ac1544af1f8cf3cbe20984f62bec306f8910b7a8af2cfb`.
+* Build recipe that finished: opt-level `s`, LTO off, 16 codegen units, `CARGO_BUILD_JOBS=2`,
+  symbols stripped. Peak `rustc` memory observed: 11.8 GB.
 * package `io.github.tienlinhgioi.cockpit`, version 1.3.78, minSdk 26, targetSdk 36,
-  ABI `arm64-v8a` only. Size ≈ 85 MB (the Rust library alone is ≈ 80 MB).
+  ABI `arm64-v8a` only. Size ≈ 91 MB (the Rust library alone is ≈ 86 MB; an earlier thin-LTO
+  build was ≈ 85 MB but could not be reproduced within the sandbox memory limit).
 * Signed with a throw-away **test** key (`CN=Cockpit Tools test signing`). Not for distribution.
 * Manifest: `allowBackup=false`, network-security-config (cleartext only for localhost),
   data-extraction rules excluding everything, foreground service type `specialUse`.
@@ -73,8 +77,13 @@ real Claude/Codex/Antigravity services.**
    mount with a guard. Full suite 1915/1915.
 3. **CI**: `android-actions/setup-android@v3` crashed on the runner (Node 24); replaced by the
    runner's preinstalled SDK.
-4. **Sandbox only**: Maven Central rate-limited (HTTP 429) through the proxy and a rustc OOM
-   kill (≈9.8 GB) while Gradle daemons were alive. Worked around locally; not repo changes.
+4. **Build memory**: `rustc` for this single ~450k-line crate peaks at 12-13 GB and was
+   OOM-killed three times on a 15 GB machine (thin LTO/8 units; LTO off/4 units — so LTO is not
+   the cause). The build only finished after limiting cargo's jobserver (`CARGO_BUILD_JOBS=2`)
+   and using 16 codegen units. Any CI runner needs ≥ 16 GB RAM or the same settings (the
+   script applies them by default).
+5. **Sandbox only**: Maven Central rate-limited (HTTP 429) through the proxy; worked around
+   with a local Gradle init script (not in the repo).
 
 ## 5. Known functional gaps (by design or not yet done)
 
