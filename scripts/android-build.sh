@@ -25,10 +25,13 @@ mkdir -p "$OUT_DIR"
 if [[ "$MODE" == release ]]; then
   # Size/speed tuning for the phone build only; desktop release profiles are untouched.
   export CARGO_PROFILE_RELEASE_OPT_LEVEL="${CARGO_PROFILE_RELEASE_OPT_LEVEL:-s}"
-  # LTO off + 4 codegen units: rustc peaks at ~12 GB with thin LTO / 8 units on this ~450k-line
-  # crate and gets OOM-killed on 15 GB machines. Override via env if you have more RAM.
+  # Memory: this ~450k-line crate makes rustc peak at 12-13 GB, and the kernel OOM-kills it on
+  # a 15 GB machine (observed 3 times, also with LTO off / 4 codegen units, so LTO is NOT the
+  # cause). Limiting cargo's jobserver to 2 keeps rustc from running many LLVM codegen jobs at
+  # once; more, smaller codegen units keep each job small. Override with env on bigger machines.
   export CARGO_PROFILE_RELEASE_LTO="${CARGO_PROFILE_RELEASE_LTO:-off}"
-  export CARGO_PROFILE_RELEASE_CODEGEN_UNITS="${CARGO_PROFILE_RELEASE_CODEGEN_UNITS:-4}"
+  export CARGO_PROFILE_RELEASE_CODEGEN_UNITS="${CARGO_PROFILE_RELEASE_CODEGEN_UNITS:-16}"
+  export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
   export GRADLE_OPTS="${GRADLE_OPTS:--Xmx1g -Dorg.gradle.workers.max=2}"
   export CARGO_PROFILE_RELEASE_STRIP="${CARGO_PROFILE_RELEASE_STRIP:-true}"
   npx tauri android build --target aarch64 --apk --ci
