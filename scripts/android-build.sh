@@ -25,8 +25,11 @@ mkdir -p "$OUT_DIR"
 if [[ "$MODE" == release ]]; then
   # Size/speed tuning for the phone build only; desktop release profiles are untouched.
   export CARGO_PROFILE_RELEASE_OPT_LEVEL="${CARGO_PROFILE_RELEASE_OPT_LEVEL:-s}"
-  export CARGO_PROFILE_RELEASE_LTO="${CARGO_PROFILE_RELEASE_LTO:-thin}"
-  export CARGO_PROFILE_RELEASE_CODEGEN_UNITS="${CARGO_PROFILE_RELEASE_CODEGEN_UNITS:-8}"
+  # LTO off + 4 codegen units: rustc peaks at ~12 GB with thin LTO / 8 units on this ~450k-line
+  # crate and gets OOM-killed on 15 GB machines. Override via env if you have more RAM.
+  export CARGO_PROFILE_RELEASE_LTO="${CARGO_PROFILE_RELEASE_LTO:-off}"
+  export CARGO_PROFILE_RELEASE_CODEGEN_UNITS="${CARGO_PROFILE_RELEASE_CODEGEN_UNITS:-4}"
+  export GRADLE_OPTS="${GRADLE_OPTS:--Xmx1g -Dorg.gradle.workers.max=2}"
   export CARGO_PROFILE_RELEASE_STRIP="${CARGO_PROFILE_RELEASE_STRIP:-true}"
   npx tauri android build --target aarch64 --apk --ci
 else
