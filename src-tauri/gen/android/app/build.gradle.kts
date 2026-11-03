@@ -51,6 +51,13 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    // Store the 86 MB native library compressed inside the APK (download ~2.4x smaller). Costs
+    // extra storage on the device because it is extracted at install time.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
 }
 
 rust {

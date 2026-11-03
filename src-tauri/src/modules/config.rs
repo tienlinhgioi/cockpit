@@ -2400,10 +2400,11 @@ fn acquire_config_file_lock(path: &Path) -> Result<fs::File, String> {
         .map_err(|error| format!("打开配置锁文件失败: {}", error))?;
     let started = std::time::Instant::now();
     loop {
-        match file.try_lock() {
+        // fs2 flock instead of std `File::try_lock`, which is unsupported on Android.
+        match crate::utils::file_lock::try_lock_exclusive(&file) {
             Ok(()) => break,
-            Err(std::fs::TryLockError::WouldBlock) if started.elapsed() < std::time::Duration::from_secs(5) => std::thread::sleep(std::time::Duration::from_millis(10)),
-            Err(std::fs::TryLockError::WouldBlock) => return Err("common.configSaveTimeout".into()),
+            Err(crate::utils::file_lock::FileLockError::WouldBlock) if started.elapsed() < std::time::Duration::from_secs(5) => std::thread::sleep(std::time::Duration::from_millis(10)),
+            Err(crate::utils::file_lock::FileLockError::WouldBlock) => return Err("common.configSaveTimeout".into()),
             Err(error) => return Err(format!("锁定配置文件失败: {}", error)),
         }
     }

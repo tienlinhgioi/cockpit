@@ -119,9 +119,9 @@ fn apply_rollout_timestamp_if_unchanged(
     #[cfg(not(windows))]
     let file = fs::File::open(path);
     let file = file.map_err(|error| format!("{}: {}", path.display(), error))?;
-    match file.try_lock() {
+    match crate::utils::file_lock::try_lock_exclusive(&file) {
         Ok(()) => {},
-        Err(std::fs::TryLockError::WouldBlock) => return Ok(false),
+        Err(crate::utils::file_lock::FileLockError::WouldBlock) => return Ok(false),
         Err(error) => return Err(format!("{}: {}", path.display(), error)),
     }
     let unchanged = |metadata: &fs::Metadata| {

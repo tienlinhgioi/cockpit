@@ -10,14 +10,14 @@ html.platform-android body {
 
 html.platform-android .app-container {
   flex-direction: column;
-  height: 100dvh;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 0;
 }
 
 html.platform-android .main-wrapper {
   margin-inline-start: 0 !important;
   width: 100%;
-  height: 100dvh;
+  height: 100%;
   padding: calc(12px + env(safe-area-inset-top, 0px)) 12px
     calc(72px + env(safe-area-inset-bottom, 0px)) 12px !important;
   gap: 12px;
@@ -97,12 +97,12 @@ html.platform-android .modal,
 html.platform-android .qs-modal,
 html.platform-android [class$='-modal'],
 html.platform-android [class*='-modal-content'] {
-  max-width: 100vw;
+  max-width: 100%;
 }
 
 html.platform-android .qs-modal {
-  width: calc(100vw - 16px);
-  max-height: calc(100dvh - 16px);
+  width: calc(var(--vw) - 16px);
+  max-height: calc(var(--vh) - 16px);
 }
 
 /* Wide tables / grids scroll instead of overflowing */
@@ -165,7 +165,7 @@ html.platform-android .app-container .side-nav {
   backdrop-filter: blur(20px);
   box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12);
   width: 100% !important;
-  max-width: 100vw;
+  max-width: 100%;
   inset-inline: 0 !important;
   bottom: 0 !important;
   top: auto !important;
@@ -231,4 +231,64 @@ html.platform-android .page-tabs-label.dashboard-title-label {
 html.platform-android .dashboard-top-actions {
   margin-left: 0;
   flex-wrap: wrap;
+}
+
+
+/* ---- Settings rows (found from a real-device screenshot) ----------------------------------
+ * `.row-label{min-width:240px}` + non-shrinking controls + 24px padding is wider than a phone,
+ * so descriptions were clipped at the right edge. Stack label above control and let it wrap. */
+html.platform-android .settings-row {
+  flex-wrap: wrap;
+  padding: 14px 12px;
+  gap: 8px;
+}
+
+html.platform-android .row-label {
+  min-width: 0 !important;
+  flex: 1 1 100%;
+  padding-right: 0;
+}
+
+html.platform-android .row-title,
+html.platform-android .row-desc {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+html.platform-android .row-control {
+  flex-shrink: 1;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+}
+
+html.platform-android .row-control select,
+html.platform-android .row-control input:not([type='checkbox']):not([type='radio']) {
+  max-width: 100%;
+}
+
+/* The app fills the WebView exactly and is drawn 1.5x smaller (zoom 0.667) so phones show more
+ * content. Sizes inside the zoomed box are in "zoom units", so the box is enlarged by 1/zoom and
+ * viewport units inside it must use --vw/--vh. `transform` makes position:fixed descendants
+ * (modals, overlays, the bottom bar) relative to this box instead of the viewport. */
+html.platform-android {
+  --ui-z: 0.667;
+  --vw: calc(100vw / var(--ui-z));
+  --vh: calc(100dvh / var(--ui-z));
+}
+
+html.platform-android .app-container {
+  position: fixed;
+  inset: auto;
+  top: 0;
+  left: 0;
+  width: var(--vw);
+  height: var(--vh);
+  min-height: 0;
+  zoom: var(--ui-z);
+  transform: translateZ(0);
+}
+
+html.platform-android .main-wrapper {
+  height: 100%;
 }
