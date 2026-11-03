@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Called by name from Rust over JNI (src-tauri/src/modules/android_platform.rs): class and method
+# names must survive R8 shrinking/obfuscation or Keystore + foreground service break at runtime.
+-keep class io.github.tienlinhgioi.cockpit.CockpitBridge { *; }
+-keep class io.github.tienlinhgioi.cockpit.GatewayService { *; }
