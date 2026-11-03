@@ -292,3 +292,15 @@ html.platform-android .app-container {
 html.platform-android .main-wrapper {
   height: 100%;
 }
+
+/* Keep 2FA / Logs / Settings reachable: the platform icons scroll horizontally underneath, but
+ * this group stays pinned to the right edge. (With many platforms Settings was pushed off-screen.) */
+html.platform-android .side-nav .nav-bottom-actions,
+html.platform-android .side-nav.side-nav-classic .nav-bottom-actions {
+  position: sticky !important;
+  right: 0;
+  z-index: 3;
+  background: var(--bg-card, #fff) !important;
+  padding-left: 6px !important;
+  box-shadow: -10px 0 10px -8px rgba(0, 0, 0, 0.3);
+}
